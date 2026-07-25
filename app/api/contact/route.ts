@@ -28,15 +28,11 @@ export async function POST(request: NextRequest) {
     const emailResult = await sendContactEmail(parsed.data);
 
     if (!emailResult.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: emailResult.message,
-          leadId: leadResult.id,
-          leadMode: leadResult.mode
-        },
-        { status: 502 }
-      );
+      console.error("Lead notification failed", {
+        message: emailResult.message,
+        leadId: leadResult.id,
+        leadMode: leadResult.mode
+      });
     }
 
     return NextResponse.json({
@@ -46,6 +42,7 @@ export async function POST(request: NextRequest) {
           ? "Thank you. Your enquiry has been received and saved."
           : emailResult.message,
       mode: emailResult.mode,
+      emailSent: emailResult.ok,
       leadId: leadResult.id,
       leadMode: leadResult.mode
     });

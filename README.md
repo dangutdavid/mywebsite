@@ -80,11 +80,14 @@ Copy `.env.example` to `.env.local` and configure values as needed.
 - `DATABASE_SSL`: set to `true` for hosted databases that require SSL.
 - `DATABASE_POOL_MAX`: optional Postgres connection-pool size.
 - `LEADS_ADMIN_TOKEN`: private token required by the lead dashboard and admin lead API.
-- `CONTACT_EMAIL_PROVIDER`: use `development` locally. Replace with the chosen provider name before production.
-- `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL`, `CONTACT_PROVIDER_API_KEY`: required for real email delivery.
+- `CONTACT_EMAIL_PROVIDER`: use `development` locally. Use `resend` on Vercel for lead notifications.
+- `CONTACT_TO_EMAIL`: notification recipient. Defaults to `dangutdavid@gmail.com`.
+- `CONTACT_FROM_EMAIL`: verified sender. Resend can start with `SkyDive Leads <onboarding@resend.dev>`.
+- `RESEND_API_KEY`: required for real email delivery through Resend.
+- `CONTACT_PROVIDER_API_KEY`: backwards-compatible fallback for `RESEND_API_KEY`.
 - `NEXT_PUBLIC_ANALYTICS_PROVIDER`, `NEXT_PUBLIC_ANALYTICS_SITE_ID`: optional analytics configuration.
 
-The current email adapter is development-safe. It does not claim to send real email unless a production provider implementation is added and confirmed.
+The email adapter is development-safe locally and supports Resend in production. If a lead is saved but the notification email fails, the form still succeeds and the server logs the email issue.
 
 ## Content Editing
 
