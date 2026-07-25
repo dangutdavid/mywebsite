@@ -54,11 +54,11 @@ export default function HomePage() {
                 Discuss a project
               </Button>
               <Button
-                href="/services"
+                href="/downloads/skydive-capability-statement.pdf"
                 variant="secondary"
                 className="min-h-10 border-white/40 bg-white/5 px-5 py-2.5 text-white hover:border-white hover:text-white"
               >
-                View services
+                Capability PDF
               </Button>
             </div>
           </div>
@@ -233,9 +233,14 @@ export default function HomePage() {
             <h2 className="font-display text-2xl font-semibold">Let&apos;s discuss your next project</h2>
             <p className="mt-1 text-sm text-mist">Book a no-obligation conversation to explore how SkyDive can help.</p>
           </div>
-          <Button href="/contact" className="bg-white !text-teal hover:bg-mint">
-            Discuss a project
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button href="/downloads/skydive-capability-statement.pdf" className="bg-white !text-teal hover:bg-mint">
+              Capability PDF
+            </Button>
+            <Button href="/contact" className="bg-navy text-white hover:bg-white hover:!text-teal">
+              Discuss a project
+            </Button>
+          </div>
         </Container>
       </section>
     </>

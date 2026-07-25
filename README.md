@@ -79,6 +79,16 @@ npm run build
 npm run test:e2e
 ```
 
+## Capability Statement PDF
+
+The downloadable capability statement is generated from `scripts/generate_capability_statement.py` and committed under `public/downloads/skydive-capability-statement.pdf`.
+
+Regenerate it after copy changes:
+
+```bash
+npm run pdf:capability
+```
+
 ## Environment
 
 Copy `.env.example` to `.env.local` and configure values as needed.

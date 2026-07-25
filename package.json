@@ -10,6 +10,7 @@
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
     "db:schema": "psql \"$DATABASE_URL\" -f db/schema.sql",
+    "pdf:capability": "python3 scripts/generate_capability_statement.py",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
