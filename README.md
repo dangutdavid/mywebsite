@@ -59,7 +59,15 @@ The dashboard can:
 - Load recent enquiries from Postgres.
 - Filter by status or search text.
 - Update lead status.
+- Add private internal notes.
+- Set follow-up status and next-action dates.
 - Export the visible lead list to CSV.
+
+After pulling updates that add new lead fields, run the schema command against each database once:
+
+```bash
+DATABASE_URL="postgres://user:password@host:5432/database" npm run db:schema
+```
 
 ## Checks
 

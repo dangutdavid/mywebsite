@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { hasAdminAccess } from "@/lib/admin-auth";
 import { isDatabaseConfigured } from "@/lib/database";
-import { leadStatuses, listLeads } from "@/lib/leads";
+import { leadFollowUpStatuses, leadStatuses, listLeads } from "@/lib/leads";
 
 export async function GET(request: NextRequest) {
   if (!hasAdminAccess(request)) {
@@ -23,6 +23,5 @@ export async function GET(request: NextRequest) {
 
   const leads = await listLeads({ status, query, limit });
 
-  return NextResponse.json({ ok: true, leads, statuses: leadStatuses });
+  return NextResponse.json({ ok: true, leads, statuses: leadStatuses, followUpStatuses: leadFollowUpStatuses });
 }
-

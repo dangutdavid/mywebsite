@@ -20,9 +20,14 @@ create table if not exists leads (
   updated_at timestamptz not null default now()
 );
 
+alter table leads add column if not exists internal_notes text not null default '';
+alter table leads add column if not exists next_action_date date;
+alter table leads add column if not exists follow_up_status text not null default 'none';
+
 create index if not exists leads_created_at_idx on leads (created_at desc);
 create index if not exists leads_email_idx on leads (lower(email));
 create index if not exists leads_status_idx on leads (status);
+create index if not exists leads_next_action_date_idx on leads (next_action_date);
 
 create or replace function set_leads_updated_at()
 returns trigger as $$
@@ -37,4 +42,3 @@ create trigger leads_set_updated_at
 before update on leads
 for each row
 execute function set_leads_updated_at();
-

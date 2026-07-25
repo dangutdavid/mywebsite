@@ -4,6 +4,8 @@ import type { ContactInput } from "@/lib/contact";
 
 export const leadStatuses = ["new", "contacted", "qualified", "won", "declined", "archived"] as const;
 export type LeadStatus = (typeof leadStatuses)[number];
+export const leadFollowUpStatuses = ["none", "needs_follow_up", "scheduled", "waiting", "completed"] as const;
+export type LeadFollowUpStatus = (typeof leadFollowUpStatuses)[number];
 
 export type LeadCaptureResult = {
   ok: boolean;
@@ -25,6 +27,9 @@ export type LeadRecord = {
   preferredContact: string;
   consent: boolean;
   status: LeadStatus;
+  internalNotes: string;
+  nextActionDate: string | null;
+  followUpStatus: LeadFollowUpStatus;
   sourcePath: string | null;
   createdAt: string;
   updatedAt: string;
@@ -43,9 +48,19 @@ type LeadRow = {
   preferred_contact: string;
   consent: boolean;
   status: LeadStatus;
+  internal_notes: string;
+  next_action_date: Date | string | null;
+  follow_up_status: LeadFollowUpStatus;
   source_path: string | null;
   created_at: Date;
   updated_at: Date;
+};
+
+export type LeadUpdateInput = {
+  status?: LeadStatus;
+  internalNotes?: string;
+  nextActionDate?: string | null;
+  followUpStatus?: LeadFollowUpStatus;
 };
 
 export async function saveLead(input: ContactInput, request: NextRequest): Promise<LeadCaptureResult> {
@@ -147,6 +162,9 @@ export async function listLeads({
         preferred_contact,
         consent,
         status,
+        internal_notes,
+        next_action_date,
+        follow_up_status,
         source_path,
         created_at,
         updated_at
@@ -162,14 +180,45 @@ export async function listLeads({
 }
 
 export async function updateLeadStatus(id: string, status: LeadStatus) {
+  return updateLead(id, { status });
+}
+
+export async function updateLead(id: string, updates: LeadUpdateInput) {
   if (!isDatabaseConfigured()) {
     throw new Error("DATABASE_URL is not configured.");
+  }
+
+  const assignments: string[] = [];
+  const values: Array<string | null> = [id];
+
+  if (updates.status) {
+    values.push(updates.status);
+    assignments.push(`status = $${values.length}`);
+  }
+
+  if (updates.internalNotes !== undefined) {
+    values.push(updates.internalNotes);
+    assignments.push(`internal_notes = $${values.length}`);
+  }
+
+  if (updates.nextActionDate !== undefined) {
+    values.push(updates.nextActionDate || null);
+    assignments.push(`next_action_date = $${values.length}`);
+  }
+
+  if (updates.followUpStatus) {
+    values.push(updates.followUpStatus);
+    assignments.push(`follow_up_status = $${values.length}`);
+  }
+
+  if (!assignments.length) {
+    return null;
   }
 
   const result = await getPool().query<LeadRow>(
     `
       update leads
-      set status = $2
+      set ${assignments.join(", ")}
       where id = $1
       returning
         id,
@@ -184,11 +233,14 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
         preferred_contact,
         consent,
         status,
+        internal_notes,
+        next_action_date,
+        follow_up_status,
         source_path,
         created_at,
         updated_at
     `,
-    [id, status]
+    values
   );
 
   return result.rows[0] ? mapLeadRow(result.rows[0]) : null;
@@ -208,9 +260,23 @@ function mapLeadRow(row: LeadRow): LeadRecord {
     preferredContact: row.preferred_contact,
     consent: row.consent,
     status: row.status,
+    internalNotes: row.internal_notes || "",
+    nextActionDate: formatDateOnly(row.next_action_date),
+    followUpStatus: row.follow_up_status || "none",
     sourcePath: row.source_path,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString()
   };
 }
 
+function formatDateOnly(value: Date | string | null) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  return value.toISOString().slice(0, 10);
+}
