@@ -7,7 +7,7 @@ import { absoluteUrl } from "@/lib/utils";
 
 export const metadata = pageMetadata({
   title: "About Maren",
-  description: "Profile of Ph.D. Maren David Dangut, Senior Salesforce Developer and Technical Lead.",
+  description: "Profile of Dr Maren David Dangut Ph.D., Senior Salesforce Developer and Technical Lead.",
   path: "/about/maren"
 });
 

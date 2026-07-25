@@ -54,7 +54,7 @@ export type EngagementStep = {
 export const site = {
   name: "SkyDive Technologies and Consultancy Ltd",
   shortName: "SkyDive",
-  personName: "Ph.D. Maren David Dangut",
+  personName: "Dr Maren David Dangut Ph.D.",
   tagline: "Salesforce, AI and data solutions built for real operating needs.",
   description:
     "SkyDive Technologies and Consultancy helps organisations design, build and improve connected digital services through Salesforce engineering, AI, data, integration and technical leadership.",

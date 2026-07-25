@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
   title: "Education",
-  description: "Education and research summary for Ph.D. Maren David Dangut.",
+  description: "Education and research summary for Dr Maren David Dangut Ph.D.",
   path: "/education"
 });
 

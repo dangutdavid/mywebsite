@@ -1,6 +1,6 @@
 # SkyDive Website
 
-Next.js App Router website for Ph.D. Maren David Dangut and SkyDive Technologies and Consultancy Ltd, built from the PRD dated 24 July 2026.
+Next.js App Router website for Dr Maren David Dangut Ph.D. and SkyDive Technologies and Consultancy Ltd, built from the PRD dated 24 July 2026.
 
 ## Stack
 
