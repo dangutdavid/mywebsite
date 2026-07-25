@@ -13,7 +13,8 @@ export const contactSchema = z.object({
   consent: z.boolean().refine((value) => value, {
     message: "Confirm that SkyDive may use these details to respond."
   }),
-  website: z.string().max(0, "Spam protection rejected this submission.").optional().or(z.literal(""))
+  website: z.string().max(0, "Spam protection rejected this submission.").optional().or(z.literal("")),
+  turnstileToken: z.string().trim().optional().or(z.literal(""))
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

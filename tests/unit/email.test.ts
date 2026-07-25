@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildLeadEmailHtml, buildLeadEmailText, sendContactEmail } from "@/lib/email";
+import {
+  buildClientConfirmationEmailHtml,
+  buildClientConfirmationEmailText,
+  buildLeadEmailHtml,
+  buildLeadEmailText,
+  sendClientConfirmationEmail,
+  sendContactEmail
+} from "@/lib/email";
 import { contactSchema, sanitiseForEmail } from "@/lib/contact";
 
 const input = contactSchema.parse({
@@ -37,6 +44,17 @@ describe("lead notification email", () => {
     expect(html).not.toContain("SkyDive <script>");
   });
 
+  it("builds a client confirmation email", () => {
+    const safe = sanitiseForEmail(input);
+    const text = buildClientConfirmationEmailText(safe);
+    const html = buildClientConfirmationEmailHtml(safe);
+
+    expect(text).toContain("Thank you for contacting SkyDive");
+    expect(text).toContain("Dr Maren David Dangut Ph.D.");
+    expect(html).toContain("SkyDive &lt;script&gt;");
+    expect(html).not.toContain("SkyDive <script>");
+  });
+
   it("uses development mode without external email calls", async () => {
     vi.stubEnv("CONTACT_EMAIL_PROVIDER", "development");
 
@@ -69,5 +87,43 @@ describe("lead notification email", () => {
       })
     );
   });
-});
 
+  it("does not send client confirmation emails until enabled", async () => {
+    vi.stubEnv("CONTACT_EMAIL_PROVIDER", "resend");
+    vi.stubEnv("RESEND_API_KEY", "test-key");
+    vi.stubEnv("CONTACT_FROM_EMAIL", "SkyDive Leads <onboarding@resend.dev>");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(sendClientConfirmationEmail(input)).resolves.toMatchObject({
+      ok: true,
+      mode: "resend"
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("sends client confirmation emails when enabled", async () => {
+    vi.stubEnv("CONTACT_EMAIL_PROVIDER", "resend");
+    vi.stubEnv("SEND_CLIENT_CONFIRMATION_EMAILS", "true");
+    vi.stubEnv("RESEND_API_KEY", "test-key");
+    vi.stubEnv("CONTACT_TO_EMAIL", "dangutdavid@gmail.com");
+    vi.stubEnv("CONTACT_FROM_EMAIL", "SkyDive Leads <onboarding@resend.dev>");
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: "email_456" })
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(sendClientConfirmationEmail(input)).resolves.toMatchObject({
+      ok: true,
+      mode: "resend"
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.resend.com/emails",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"to":"dangutdavid@gmail.com"')
+      })
+    );
+  });
+});

@@ -85,9 +85,29 @@ Copy `.env.example` to `.env.local` and configure values as needed.
 - `CONTACT_FROM_EMAIL`: verified sender. Resend can start with `SkyDive Leads <onboarding@resend.dev>`.
 - `RESEND_API_KEY`: required for real email delivery through Resend.
 - `CONTACT_PROVIDER_API_KEY`: backwards-compatible fallback for `RESEND_API_KEY`.
+- `SEND_CLIENT_CONFIRMATION_EMAILS`: set to `true` to email a polite receipt confirmation to the person who submitted the form.
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: optional Cloudflare Turnstile site key for the contact form widget.
+- `TURNSTILE_SECRET_KEY`: optional Cloudflare Turnstile secret key used by `/api/contact` to verify submissions.
 - `NEXT_PUBLIC_ANALYTICS_PROVIDER`, `NEXT_PUBLIC_ANALYTICS_SITE_ID`: optional analytics configuration.
 
-The email adapter is development-safe locally and supports Resend in production. If a lead is saved but the notification email fails, the form still succeeds and the server logs the email issue.
+The email adapter is development-safe locally and supports Resend in production. If a lead is saved but an email fails, the form still succeeds and the server logs the email issue. Client confirmation emails are off by default so the site does not unexpectedly double email volume; enable them deliberately after confirming the sender domain and quota.
+
+### Client Confirmation Emails
+
+Set `SEND_CLIENT_CONFIRMATION_EMAILS=true` to send an automatic receipt to the person who submits the form. With owner notification and client confirmation enabled, each enquiry sends two emails through Resend.
+
+For production, prefer a verified sender such as `hello@your-domain` in `CONTACT_FROM_EMAIL`. The temporary `onboarding@resend.dev` sender is useful for testing, but a verified domain gives better deliverability and a more professional client experience.
+
+### Anti-Spam Protection
+
+The form already includes rate limiting and a hidden honeypot field. To add Cloudflare Turnstile:
+
+1. Create a Turnstile widget in Cloudflare for the production domain.
+2. Add the site key to `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
+3. Add the secret key to `TURNSTILE_SECRET_KEY`.
+4. Redeploy the site.
+
+When the secret key is configured, `/api/contact` rejects submissions that do not pass Turnstile verification.
 
 ## Content Editing
 
@@ -108,7 +128,7 @@ Add future articles or case studies by adding objects to the relevant arrays. Ke
 
 - Do not add tax references, dates of birth, passport details, immigration details, private residential data, confidential client deliverables or source code to public content.
 - The site ships without non-essential analytics cookies by default.
-- Contact submissions are validated server-side, rate limited, protected by a honeypot field and saved to Postgres when configured.
+- Contact submissions are validated server-side, rate limited, protected by a honeypot field and optional Cloudflare Turnstile, and saved to Postgres when configured.
 - Security headers and a conservative CSP are configured in `next.config.mjs`.
 
 ## Deployment
@@ -132,7 +152,7 @@ Add future articles or case studies by adding objects to the relevant arrays. Ke
 ## Future Backlog
 
 1. Add a managed CMS with preview and scheduling if Maren wants non-developer editing.
-2. Implement the chosen email provider and delivery monitoring.
+2. Add lead notes, next-action dates and follow-up reminders in the private dashboard.
 3. Add approved professional photography and final brand assets.
 4. Create an approved downloadable capability statement.
 5. Replace draft case-study candidates with permissioned public case studies.

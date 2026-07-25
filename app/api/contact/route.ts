@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { contactSchema, checkRateLimit } from "@/lib/contact";
-import { sendContactEmail } from "@/lib/email";
+import { sendClientConfirmationEmail, sendContactEmail } from "@/lib/email";
 import { saveLead } from "@/lib/leads";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -24,12 +25,26 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const turnstileResult = await verifyTurnstileToken(parsed.data.turnstileToken, request);
+    if (!turnstileResult.ok) {
+      return NextResponse.json({ ok: false, message: turnstileResult.message }, { status: 403 });
+    }
+
     const leadResult = await saveLead(parsed.data, request);
     const emailResult = await sendContactEmail(parsed.data);
+    const confirmationResult = await sendClientConfirmationEmail(parsed.data);
 
     if (!emailResult.ok) {
       console.error("Lead notification failed", {
         message: emailResult.message,
+        leadId: leadResult.id,
+        leadMode: leadResult.mode
+      });
+    }
+
+    if (!confirmationResult.ok) {
+      console.error("Client confirmation email failed", {
+        message: confirmationResult.message,
         leadId: leadResult.id,
         leadMode: leadResult.mode
       });
@@ -43,6 +58,8 @@ export async function POST(request: NextRequest) {
           : emailResult.message,
       mode: emailResult.mode,
       emailSent: emailResult.ok,
+      confirmationSent: confirmationResult.ok,
+      turnstileMode: turnstileResult.mode,
       leadId: leadResult.id,
       leadMode: leadResult.mode
     });

@@ -1,18 +1,22 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { services } from "@/content/site";
 import { contactSchema, type ContactInput } from "@/lib/contact";
 import { trackEvent } from "@/lib/analytics";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 
 const timingOptions = ["As soon as practical", "Within 1-3 months", "Exploratory / not yet scheduled"];
 const contactOptions = ["Email", "Telephone", "LinkedIn"];
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
   const {
     register,
     handleSubmit,
@@ -29,12 +33,23 @@ export function ContactForm() {
     }
   }, [isDirty]);
 
+  const clearTurnstileToken = useCallback(() => {
+    setTurnstileToken("");
+  }, []);
+
   async function onSubmit(values: ContactInput) {
     setStatus("idle");
+
+    if (turnstileSiteKey && !turnstileToken) {
+      setStatus("error");
+      setMessage("Complete the spam check and try again.");
+      return;
+    }
+
     const response = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values)
+      body: JSON.stringify({ ...values, turnstileToken })
     });
     const data = (await response.json()) as { ok: boolean; message: string };
     if (response.ok && data.ok) {
@@ -42,10 +57,14 @@ export function ContactForm() {
       setStatus("success");
       setMessage(data.message);
       reset();
+      setTurnstileToken("");
+      setTurnstileResetSignal((value) => value + 1);
       return;
     }
     setStatus("error");
     setMessage(data.message || "The enquiry could not be submitted.");
+    setTurnstileToken("");
+    setTurnstileResetSignal((value) => value + 1);
   }
 
   return (
@@ -115,6 +134,7 @@ export function ContactForm() {
         </span>
       </label>
       {errors.consent?.message ? <p className="mt-2 text-sm font-medium text-red-700">{errors.consent.message}</p> : null}
+      <TurnstileWidget onVerify={setTurnstileToken} onExpire={clearTurnstileToken} resetSignal={turnstileResetSignal} />
       {status !== "idle" ? (
         <div className={status === "success" ? "mt-5 rounded-md bg-mint p-4 text-sm text-navy" : "mt-5 rounded-md bg-red-50 p-4 text-sm text-red-800"} role="status">
           {message}
