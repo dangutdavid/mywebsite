@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
   title: "Work",
-  description: "Selected experience and confidentiality-safe work themes for SkyDive and Dr Maren David Dangut.",
+  description: "Selected experience and confidentiality-safe work themes for SkyDive and Ph.D. Maren David Dangut.",
   path: "/work"
 });
 
