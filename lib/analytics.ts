@@ -1,7 +1,11 @@
 export type AnalyticsEvent =
   | "contact_cta_click"
   | "contact_form_start"
+  | "contact_form_service_select"
+  | "contact_form_submit"
   | "contact_form_success"
+  | "contact_form_error"
+  | "capability_pdf_click"
   | "service_page_view"
   | "case_study_view"
   | "article_view"
@@ -24,4 +28,3 @@ export function trackEvent(name: AnalyticsEvent, properties: Record<string, stri
     })
   );
 }
-

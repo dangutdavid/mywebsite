@@ -39,10 +39,16 @@ export function ContactForm() {
 
   async function onSubmit(values: ContactInput) {
     setStatus("idle");
+    trackEvent("contact_form_submit", {
+      service: values.service,
+      timing: values.timing,
+      preferredContact: values.preferredContact
+    });
 
     if (turnstileSiteKey && !turnstileToken) {
       setStatus("error");
       setMessage("Complete the spam check and try again.");
+      trackEvent("contact_form_error", { reason: "turnstile_missing" });
       return;
     }
 
@@ -53,7 +59,7 @@ export function ContactForm() {
     });
     const data = (await response.json()) as { ok: boolean; message: string };
     if (response.ok && data.ok) {
-      trackEvent("contact_form_success");
+      trackEvent("contact_form_success", { service: values.service });
       setStatus("success");
       setMessage(data.message);
       reset();
@@ -63,6 +69,7 @@ export function ContactForm() {
     }
     setStatus("error");
     setMessage(data.message || "The enquiry could not be submitted.");
+    trackEvent("contact_form_error", { reason: response.status.toString() });
     setTurnstileToken("");
     setTurnstileResetSignal((value) => value + 1);
   }
@@ -88,7 +95,12 @@ export function ContactForm() {
           <input {...register("telephone")} type="tel" autoComplete="tel" className="field" />
         </Field>
         <Field label="Service of interest" error={errors.service?.message}>
-          <select {...register("service")} className="field">
+          <select
+            {...register("service", {
+              onChange: (event) => trackEvent("contact_form_service_select", { service: event.target.value })
+            })}
+            className="field"
+          >
             <option value="">Select a service</option>
             {services.map((service) => (
               <option key={service.slug} value={service.title}>
